@@ -127,6 +127,18 @@ public class UserService {
 
     public List<UserResponse> getStudentsByFaculty(Long facultyId) {
 
+        return getStudentsByFaculty(facultyId, null);
+    }
+
+    public List<UserResponse> getStudentsByFaculty(Long facultyId, String role) {
+
+        if (isAdminRole(role)) {
+            return userRepository.findAll()
+                    .stream()
+                    .map(this::mapToUserResponse)
+                    .collect(Collectors.toList());
+        }
+
         UserEntity faculty = userRepository.findById(facultyId)
                 .orElseThrow(() -> new RuntimeException("Faculty not found"));
 
@@ -179,6 +191,25 @@ public class UserService {
     // ==========================================
 
     public List<UserResponse> getAllUsers() {
+        return getAllUsers(null, null);
+    }
+
+    public List<UserResponse> getAllUsers(String role, Long userId) {
+
+        if (isAdminRole(role)) {
+            return userRepository.findAll()
+                    .stream()
+                    .map(this::mapToUserResponse)
+                    .collect(Collectors.toList());
+        }
+
+        if (userId != null) {
+            return userRepository.findById(userId)
+                    .stream()
+                    .map(this::mapToUserResponse)
+                    .collect(Collectors.toList());
+        }
+
         return userRepository.findAll()
                 .stream()
                 .map(this::mapToUserResponse)
@@ -208,5 +239,9 @@ public class UserService {
         }
 
         return response;
+    }
+
+    private boolean isAdminRole(String role) {
+        return role != null && role.equalsIgnoreCase("ADMIN");
     }
 }

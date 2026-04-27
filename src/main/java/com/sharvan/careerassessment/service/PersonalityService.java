@@ -24,6 +24,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Sort;
 
 @Service
 public class PersonalityService {
@@ -53,10 +54,17 @@ public class PersonalityService {
     // ==========================================
 
     public List<PersonalityTestDTO> getAvailableTests(Long studentId) {
-        List<PersonalityTestEntity> tests = testRepository.findByIsActiveTrueOrderByCreatedAtDesc();
-        
+        return getAvailableTests(studentId, null);
+    }
+
+    public List<PersonalityTestDTO> getAvailableTests(Long studentId, String role) {
+        List<PersonalityTestEntity> tests = isAdminRole(role)
+                ? testRepository.findAll()
+                : testRepository.findByIsActiveTrueOrderByCreatedAtDesc();
+
         return tests.stream().map(test -> {
-            boolean alreadyTaken = resultRepository.existsByStudent_IdAndPersonalityTest_Id(studentId, test.getId());
+            boolean alreadyTaken = !isAdminRole(role)
+                    && resultRepository.existsByStudent_IdAndPersonalityTest_Id(studentId, test.getId());
             return new PersonalityTestDTO(
                 test.getId(),
                 test.getTitle(),
@@ -203,7 +211,13 @@ public class PersonalityService {
     // ==========================================
 
     public List<PersonalityResultDTO> getStudentResults(Long studentId) {
-        List<PersonalityResultEntity> results = resultRepository.findByStudent_Id(studentId);
+        return getStudentResults(studentId, null);
+    }
+
+    public List<PersonalityResultDTO> getStudentResults(Long studentId, String role) {
+        List<PersonalityResultEntity> results = isAdminRole(role)
+                ? resultRepository.findAll(Sort.by(Sort.Direction.DESC, "submittedAt"))
+                : resultRepository.findByStudent_Id(studentId);
         return results.stream()
             .map(this::mapToResultDTO)
             .collect(Collectors.toList());
@@ -214,6 +228,18 @@ public class PersonalityService {
     // ==========================================
 
     public PersonalityResultDTO getLatestResult(Long studentId) {
+        return getLatestResult(studentId, null);
+    }
+
+    public PersonalityResultDTO getLatestResult(Long studentId, String role) {
+        if (isAdminRole(role)) {
+            return resultRepository.findAll(Sort.by(Sort.Direction.DESC, "submittedAt"))
+                    .stream()
+                    .findFirst()
+                    .map(this::mapToResultDTO)
+                    .orElse(null);
+        }
+
         return resultRepository.findTopByStudent_IdOrderBySubmittedAtDesc(studentId)
             .map(this::mapToResultDTO)
             .orElse(null);
@@ -435,6 +461,10 @@ public class PersonalityService {
         return value.trim()
                 .replaceAll("[\\\\/:*?\"<>|]", "-")
                 .replaceAll("\\s+", "_");
+    }
+
+    private boolean isAdminRole(String role) {
+        return role != null && role.equalsIgnoreCase("ADMIN");
     }
 
     public record PersonalityPdfReport(String fileName, byte[] bytes) {}

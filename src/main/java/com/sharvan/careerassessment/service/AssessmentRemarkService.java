@@ -1,6 +1,7 @@
 package com.sharvan.careerassessment.service;
 
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -50,8 +51,19 @@ public class AssessmentRemarkService {
 
         remarkRepository.save(remark);
     }
- // GET unread count
+
+    // GET unread count
     public long getUnreadRemarkCount(Long studentId) {
+        return getUnreadRemarkCount(studentId, null);
+    }
+
+    public long getUnreadRemarkCount(Long studentId, String role) {
+        if (isAdminRole(role)) {
+            return remarkRepository.findAll().stream()
+                    .filter(remark -> !remark.isRead())
+                    .count();
+        }
+
         return remarkRepository
                 .findByStudent_IdAndIsReadFalse(studentId)
                 .size();
@@ -59,13 +71,25 @@ public class AssessmentRemarkService {
 
     // MARK AS READ
     public void markRemarksAsRead(Long studentId) {
-        var remarks = remarkRepository
-                .findByStudent_IdAndIsReadFalse(studentId);
+        markRemarksAsRead(studentId, null);
+    }
+
+    public void markRemarksAsRead(Long studentId, String role) {
+        var remarks = isAdminRole(role)
+                ? remarkRepository.findAll().stream()
+                        .filter(remark -> !remark.isRead())
+                        .collect(Collectors.toList())
+                : remarkRepository
+                        .findByStudent_IdAndIsReadFalse(studentId);
 
         for (AssessmentRemarkEntity remark : remarks) {
             remark.setRead(true);
         }
 
         remarkRepository.saveAll(remarks);
+    }
+
+    private boolean isAdminRole(String role) {
+        return role != null && role.equalsIgnoreCase("ADMIN");
     }
 }

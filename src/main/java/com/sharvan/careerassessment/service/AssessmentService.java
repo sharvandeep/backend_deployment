@@ -115,6 +115,15 @@ public class AssessmentService {
     // =====================================================
     public List<AssessmentEntity> getFacultyAssessments(Long facultyId) {
 
+        return getFacultyAssessments(facultyId, null);
+    }
+
+    public List<AssessmentEntity> getFacultyAssessments(Long facultyId, String role) {
+
+        if (isAdminRole(role)) {
+            return assessmentRepository.findAll();
+        }
+
         // 🔍 Validate Faculty
         UserEntity faculty = userRepository.findById(facultyId)
                 .orElseThrow(() -> new RuntimeException("Faculty not found"));
@@ -159,4 +168,8 @@ public class AssessmentService {
             if (request.getSkillCategory() != null) question.setSkillCategory(request.getSkillCategory());
             return questionRepository.save(question);
         }
+
+    private boolean isAdminRole(String role) {
+        return role != null && role.equalsIgnoreCase("ADMIN");
+    }
 }

@@ -2,6 +2,7 @@ package com.sharvan.careerassessment.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -64,6 +65,14 @@ public class NotificationService {
     // 2️⃣ Get all notifications for a user
     // =====================================================
     public List<NotificationEntity> getNotificationsForUser(Long userId) {
+        return getNotificationsForUser(userId, null);
+    }
+
+    public List<NotificationEntity> getNotificationsForUser(Long userId, String role) {
+        if (isAdminRole(role)) {
+            return findAllNotificationsNewestFirst();
+        }
+
         return notificationRepository.findByRecipientIdOrderByCreatedAtDesc(userId);
     }
 
@@ -71,6 +80,16 @@ public class NotificationService {
     // 3️⃣ Get unread notifications for a user
     // =====================================================
     public List<NotificationEntity> getUnreadNotificationsForUser(Long userId) {
+        return getUnreadNotificationsForUser(userId, null);
+    }
+
+    public List<NotificationEntity> getUnreadNotificationsForUser(Long userId, String role) {
+        if (isAdminRole(role)) {
+            return findAllNotificationsNewestFirst().stream()
+                    .filter(notification -> !notification.isRead())
+                    .collect(Collectors.toList());
+        }
+
         return notificationRepository.findByRecipientIdAndIsReadFalseOrderByCreatedAtDesc(userId);
     }
 
@@ -78,6 +97,16 @@ public class NotificationService {
     // 4️⃣ Count unread notifications for a user
     // =====================================================
     public long getUnreadNotificationCount(Long userId) {
+        return getUnreadNotificationCount(userId, null);
+    }
+
+    public long getUnreadNotificationCount(Long userId, String role) {
+        if (isAdminRole(role)) {
+            return notificationRepository.findAll().stream()
+                    .filter(notification -> !notification.isRead())
+                    .count();
+        }
+
         return notificationRepository.countByRecipientIdAndIsReadFalse(userId);
     }
 
@@ -131,6 +160,18 @@ public class NotificationService {
     // 9️⃣ Get notifications by type
     // =====================================================
     public List<NotificationEntity> getNotificationsByType(Long userId, String notificationType) {
+        return getNotificationsByType(userId, notificationType, null);
+    }
+
+    public List<NotificationEntity> getNotificationsByType(Long userId, String notificationType, String role) {
+        if (isAdminRole(role)) {
+            return findAllNotificationsNewestFirst().stream()
+                    .filter(notification -> notificationType != null
+                            && notification.getNotificationType() != null
+                            && notification.getNotificationType().equalsIgnoreCase(notificationType))
+                    .collect(Collectors.toList());
+        }
+
         return notificationRepository.findByRecipientIdAndNotificationTypeOrderByCreatedAtDesc(userId, notificationType);
     }
 
@@ -138,6 +179,16 @@ public class NotificationService {
     // 🔟 Get recent notifications (limit 10)
     // =====================================================
     public List<NotificationEntity> getRecentNotifications(Long userId) {
+        return getRecentNotifications(userId, null);
+    }
+
+    public List<NotificationEntity> getRecentNotifications(Long userId, String role) {
+        if (isAdminRole(role)) {
+            return findAllNotificationsNewestFirst().stream()
+                    .limit(10)
+                    .collect(Collectors.toList());
+        }
+
         return notificationRepository.findRecentNotifications(userId);
     }
 
@@ -145,7 +196,17 @@ public class NotificationService {
     // 1️⃣1️⃣ Get notification history (read + unread)
     // =====================================================
     public List<NotificationEntity> getNotificationHistory(Long userId, int limit) {
+        return getNotificationHistory(userId, limit, null);
+    }
+
+    public List<NotificationEntity> getNotificationHistory(Long userId, int limit, String role) {
         int safeLimit = Math.max(1, Math.min(limit, 200));
+
+        if (isAdminRole(role)) {
+            Pageable pageable = PageRequest.of(0, safeLimit, Sort.by(Sort.Direction.DESC, "createdAt"));
+            return notificationRepository.findAll(pageable).getContent();
+        }
+
         Pageable pageable = PageRequest.of(0, safeLimit, Sort.by(Sort.Direction.DESC, "createdAt"));
         return notificationRepository.findByRecipientId(userId, pageable).getContent();
     }
@@ -156,5 +217,13 @@ public class NotificationService {
     @Transactional
     public int migrateLegacyReviewActionUrls() {
         return notificationRepository.migrateLegacyReviewActionUrls();
+    }
+
+    private List<NotificationEntity> findAllNotificationsNewestFirst() {
+        return notificationRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
+    }
+
+    private boolean isAdminRole(String role) {
+        return role != null && role.equalsIgnoreCase("ADMIN");
     }
 }

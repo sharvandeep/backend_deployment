@@ -2,6 +2,7 @@ package com.sharvan.careerassessment.controller;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -80,6 +81,14 @@ public class AssessmentRemarkService {
     // 2️⃣ GET ALL REMARKS FOR STUDENT
     // =====================================================
     public List<AssessmentRemarkEntity> getRemarksByStudent(Long studentId) {
+        return getRemarksByStudent(studentId, null);
+    }
+
+    public List<AssessmentRemarkEntity> getRemarksByStudent(Long studentId, String role) {
+        if (isAdminRole(role)) {
+            return remarkRepository.findAll();
+        }
+
         return remarkRepository.findByStudent_Id(studentId);
     }
 
@@ -87,6 +96,16 @@ public class AssessmentRemarkService {
     // 3️⃣ GET UNREAD REMARK COUNT (🔔 NOTIFICATION)
     // =====================================================
     public long getUnreadRemarkCount(Long studentId) {
+        return getUnreadRemarkCount(studentId, null);
+    }
+
+    public long getUnreadRemarkCount(Long studentId, String role) {
+        if (isAdminRole(role)) {
+            return remarkRepository.findAll().stream()
+                    .filter(remark -> !remark.isRead())
+                    .count();
+        }
+
         return remarkRepository
                 .findByStudent_IdAndIsReadFalse(studentId)
                 .size();
@@ -96,9 +115,17 @@ public class AssessmentRemarkService {
     // 4️⃣ MARK ALL REMARKS AS READ
     // =====================================================
     public void markRemarksAsRead(Long studentId) {
+        markRemarksAsRead(studentId, null);
 
-        List<AssessmentRemarkEntity> remarks =
-                remarkRepository.findByStudent_IdAndIsReadFalse(studentId);
+    }
+
+    public void markRemarksAsRead(Long studentId, String role) {
+
+        List<AssessmentRemarkEntity> remarks = isAdminRole(role)
+                ? remarkRepository.findAll().stream()
+                        .filter(remark -> !remark.isRead())
+                        .collect(Collectors.toList())
+                : remarkRepository.findByStudent_IdAndIsReadFalse(studentId);
 
         for (AssessmentRemarkEntity remark : remarks) {
             remark.setRead(true);
@@ -130,6 +157,14 @@ public class AssessmentRemarkService {
     // 7️⃣ GET FACULTY'S REMARKS FOR ASSESSMENT
     // =====================================================
     public List<AssessmentRemarkEntity> getRemarksByFacultyAndAssessment(Long facultyId, Long assessmentId) {
+        return getRemarksByFacultyAndAssessment(facultyId, assessmentId, null);
+    }
+
+    public List<AssessmentRemarkEntity> getRemarksByFacultyAndAssessment(Long facultyId, Long assessmentId, String role) {
+        if (isAdminRole(role)) {
+            return remarkRepository.findAll();
+        }
+
         return remarkRepository.findByFaculty_IdAndAssessment_Id(facultyId, assessmentId);
     }
 
@@ -141,5 +176,9 @@ public class AssessmentRemarkService {
                 .orElseThrow(() -> new RuntimeException("Remark not found"));
         
         remarkRepository.delete(remark);
+    }
+
+    private boolean isAdminRole(String role) {
+        return role != null && role.equalsIgnoreCase("ADMIN");
     }
 }
