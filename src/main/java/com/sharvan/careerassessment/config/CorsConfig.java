@@ -16,7 +16,8 @@ public class CorsConfig {
                         .allowedOrigins(
                             "http://localhost:5173",
                             "http://localhost:5174",
-                            "https://frontenddeploy-git-main-sharvandeeps-projects.vercel.app"
+                            "https://frontenddeploy-git-main-sharvandeeps-projects.vercel.app",
+                            "https://frontenddeploy-sepia.vercel.app"
                         )
                         .allowedMethods("*")
                         .allowedHeaders("*");
