@@ -66,7 +66,9 @@ public class UserController {
     // ==============================
 
     @GetMapping
-    public List<UserResponse> getAllUsers() {
-        return userService.getAllUsers();
+    public List<UserResponse> getAllUsers(
+            @RequestParam(required = false) String role,
+            @RequestParam(required = false) Long userId) {
+        return userService.getAllUsers(role, userId);
     }
 }

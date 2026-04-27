@@ -29,8 +29,10 @@ public class PersonalityController {
     // ==========================================
     
     @GetMapping("/tests/{studentId}")
-    public ResponseEntity<List<PersonalityTestDTO>> getAvailableTests(@PathVariable Long studentId) {
-        List<PersonalityTestDTO> tests = personalityService.getAvailableTests(studentId);
+    public ResponseEntity<List<PersonalityTestDTO>> getAvailableTests(
+            @PathVariable Long studentId,
+            @RequestParam(required = false) String role) {
+        List<PersonalityTestDTO> tests = personalityService.getAvailableTests(studentId, role);
         return ResponseEntity.ok(tests);
     }
 
@@ -59,8 +61,10 @@ public class PersonalityController {
     // ==========================================
     
     @GetMapping("/results/{studentId}")
-    public ResponseEntity<List<PersonalityResultDTO>> getStudentResults(@PathVariable Long studentId) {
-        List<PersonalityResultDTO> results = personalityService.getStudentResults(studentId);
+    public ResponseEntity<List<PersonalityResultDTO>> getStudentResults(
+            @PathVariable Long studentId,
+            @RequestParam(required = false) String role) {
+        List<PersonalityResultDTO> results = personalityService.getStudentResults(studentId, role);
         return ResponseEntity.ok(results);
     }
 
@@ -69,8 +73,10 @@ public class PersonalityController {
     // ==========================================
     
     @GetMapping("/results/{studentId}/latest")
-    public ResponseEntity<PersonalityResultDTO> getLatestResult(@PathVariable Long studentId) {
-        PersonalityResultDTO result = personalityService.getLatestResult(studentId);
+    public ResponseEntity<PersonalityResultDTO> getLatestResult(
+            @PathVariable Long studentId,
+            @RequestParam(required = false) String role) {
+        PersonalityResultDTO result = personalityService.getLatestResult(studentId, role);
         if (result == null) {
             return ResponseEntity.noContent().build();
         }

@@ -179,11 +179,13 @@ public class StudentAssessmentController {
     // =====================================================
     @GetMapping("/results/{studentId}")
     public List<ResultHistoryDTO> getStudentResults(
-            @PathVariable Long studentId
+            @PathVariable Long studentId,
+            @RequestParam(required = false) String role
     ) {
 
-        List<AssessmentResultEntity> results =
-                resultRepository.findByStudent_Id(studentId);
+        List<AssessmentResultEntity> results = isAdminRole(role)
+                ? resultRepository.findAll()
+                : resultRepository.findByStudent_Id(studentId);
         
 
         return results.stream().map(result -> {
@@ -231,11 +233,13 @@ public class StudentAssessmentController {
     // =====================================================
     @GetMapping("/skill-analysis/{studentId}")
     public List<SkillAnalysisDTO> getSkillAnalysis(
-            @PathVariable Long studentId
+            @PathVariable Long studentId,
+            @RequestParam(required = false) String role
     ) {
 
-        List<StudentResponseEntity> responses =
-                responseRepository.findByStudent_Id(studentId);
+        List<StudentResponseEntity> responses = isAdminRole(role)
+                ? responseRepository.findAll()
+                : responseRepository.findByStudent_Id(studentId);
 
         Map<String, Integer> total = new HashMap<>();
         Map<String, Integer> correct = new HashMap<>();
@@ -276,16 +280,21 @@ public class StudentAssessmentController {
     // =====================================================
     @GetMapping("/assessments/{studentId}")
     public List<AssessmentListDTO> getAvailableAssessments(
-            @PathVariable Long studentId
+            @PathVariable Long studentId,
+            @RequestParam(required = false) String role
     ) {
 
-        UserEntity student = userRepository.findById(studentId)
-                .orElseThrow(() -> new RuntimeException("Student not found"));
+        List<AssessmentEntity> assessments;
+        if (isAdminRole(role)) {
+            assessments = assessmentRepository.findAll();
+        } else {
+            UserEntity student = userRepository.findById(studentId)
+                    .orElseThrow(() -> new RuntimeException("Student not found"));
 
-        Long branchId = student.getBranch().getId();
+            Long branchId = student.getBranch().getId();
 
-        List<AssessmentEntity> assessments =
-                assessmentRepository.findByBranchId(branchId);
+            assessments = assessmentRepository.findByBranchId(branchId);
+        }
 
         return assessments.stream().map(assessment -> {
 
@@ -310,6 +319,10 @@ public class StudentAssessmentController {
     ) {
         return careerRecommendationService.getRecommendations(studentId);
     }
+
+        private boolean isAdminRole(String role) {
+                return role != null && role.equalsIgnoreCase("ADMIN");
+        }
 
         private byte[] buildPdfReport(AssessmentResultEntity result, List<StudentResponseEntity> responses) {
                 try (ByteArrayOutputStream output = new ByteArrayOutputStream()) {

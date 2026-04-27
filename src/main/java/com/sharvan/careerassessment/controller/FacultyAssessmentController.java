@@ -60,12 +60,13 @@ public class FacultyAssessmentController {
     // =====================================================
     // 2️⃣ GET ALL ASSESSMENTS CREATED BY FACULTY
     // =====================================================
-    @GetMapping("/{facultyId}")
-    public List<AssessmentEntity> getFacultyAssessments(
-            @PathVariable Long facultyId
-    ) {
-        return assessmentService.getFacultyAssessments(facultyId);
-    }
+        @GetMapping("/{facultyId}")
+        public List<AssessmentEntity> getFacultyAssessments(
+                        @PathVariable Long facultyId,
+                        @RequestParam(required = false) String role
+        ) {
+                return assessmentService.getFacultyAssessments(facultyId, role);
+        }
 
     // =====================================================
     // 3️⃣ GET RESULTS FILTERED BY ASSESSMENT

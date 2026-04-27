@@ -29,8 +29,9 @@ public class NotificationController {
     // =====================================================
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<NotificationEntity>> getNotificationsForUser(
-            @PathVariable Long userId) {
-        List<NotificationEntity> notifications = notificationService.getNotificationsForUser(userId);
+            @PathVariable Long userId,
+            @RequestParam(required = false) String role) {
+        List<NotificationEntity> notifications = notificationService.getNotificationsForUser(userId, role);
         return ResponseEntity.ok(notifications);
     }
 
@@ -39,8 +40,9 @@ public class NotificationController {
     // =====================================================
     @GetMapping("/user/{userId}/unread")
     public ResponseEntity<List<NotificationEntity>> getUnreadNotifications(
-            @PathVariable Long userId) {
-        List<NotificationEntity> notifications = notificationService.getUnreadNotificationsForUser(userId);
+            @PathVariable Long userId,
+            @RequestParam(required = false) String role) {
+        List<NotificationEntity> notifications = notificationService.getUnreadNotificationsForUser(userId, role);
         return ResponseEntity.ok(notifications);
     }
 
@@ -49,8 +51,9 @@ public class NotificationController {
     // =====================================================
     @GetMapping("/user/{userId}/unread-count")
     public ResponseEntity<Long> getUnreadNotificationCount(
-            @PathVariable Long userId) {
-        long count = notificationService.getUnreadNotificationCount(userId);
+            @PathVariable Long userId,
+            @RequestParam(required = false) String role) {
+        long count = notificationService.getUnreadNotificationCount(userId, role);
         return ResponseEntity.ok(count);
     }
 
@@ -59,8 +62,9 @@ public class NotificationController {
     // =====================================================
     @GetMapping("/user/{userId}/recent")
     public ResponseEntity<List<NotificationEntity>> getRecentNotifications(
-            @PathVariable Long userId) {
-        List<NotificationEntity> notifications = notificationService.getRecentNotifications(userId);
+            @PathVariable Long userId,
+            @RequestParam(required = false) String role) {
+        List<NotificationEntity> notifications = notificationService.getRecentNotifications(userId, role);
         return ResponseEntity.ok(notifications);
     }
 
@@ -70,8 +74,9 @@ public class NotificationController {
     @GetMapping("/user/{userId}/history")
     public ResponseEntity<List<NotificationEntity>> getNotificationHistory(
             @PathVariable Long userId,
-            @RequestParam(defaultValue = "50") int limit) {
-        List<NotificationEntity> notifications = notificationService.getNotificationHistory(userId, limit);
+            @RequestParam(defaultValue = "50") int limit,
+            @RequestParam(required = false) String role) {
+        List<NotificationEntity> notifications = notificationService.getNotificationHistory(userId, limit, role);
         return ResponseEntity.ok(notifications);
     }
 
@@ -80,8 +85,9 @@ public class NotificationController {
     // =====================================================
     @GetMapping("/user/{userId}/history/export")
     public ResponseEntity<byte[]> exportNotificationHistory(
-            @PathVariable Long userId) {
-        List<NotificationEntity> notifications = notificationService.getNotificationsForUser(userId);
+            @PathVariable Long userId,
+            @RequestParam(required = false) String role) {
+        List<NotificationEntity> notifications = notificationService.getNotificationsForUser(userId, role);
 
         StringBuilder csv = new StringBuilder();
         csv.append("ID,Title,Message,Type,Read,Created At,Read At,Action URL,Related Entity ID,Triggered By\n");
@@ -115,8 +121,9 @@ public class NotificationController {
     @GetMapping("/user/{userId}/type/{notificationType}")
     public ResponseEntity<List<NotificationEntity>> getNotificationsByType(
             @PathVariable Long userId,
-            @PathVariable String notificationType) {
-        List<NotificationEntity> notifications = notificationService.getNotificationsByType(userId, notificationType);
+            @PathVariable String notificationType,
+            @RequestParam(required = false) String role) {
+        List<NotificationEntity> notifications = notificationService.getNotificationsByType(userId, notificationType, role);
         return ResponseEntity.ok(notifications);
     }
 

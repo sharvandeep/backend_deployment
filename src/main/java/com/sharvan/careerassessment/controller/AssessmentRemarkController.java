@@ -65,10 +65,11 @@ public class AssessmentRemarkController {
     // =====================================================
     @GetMapping("/student/{studentId}")
     public ResponseEntity<List<AssessmentRemarkEntity>> getStudentRemarks(
-            @PathVariable Long studentId
+            @PathVariable Long studentId,
+            @RequestParam(required = false) String role
     ) {
         try {
-            List<AssessmentRemarkEntity> remarks = remarkService.getRemarksByStudent(studentId);
+            List<AssessmentRemarkEntity> remarks = remarkService.getRemarksByStudent(studentId, role);
             return ResponseEntity.ok(remarks);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
@@ -80,10 +81,11 @@ public class AssessmentRemarkController {
     // =====================================================
     @GetMapping("/student/{studentId}/unread-count")
     public ResponseEntity<Long> getUnreadRemarkCount(
-            @PathVariable Long studentId
+            @PathVariable Long studentId,
+            @RequestParam(required = false) String role
     ) {
         try {
-            long count = remarkService.getUnreadRemarkCount(studentId);
+            long count = remarkService.getUnreadRemarkCount(studentId, role);
             return ResponseEntity.ok(count);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().build();
@@ -95,10 +97,11 @@ public class AssessmentRemarkController {
     // =====================================================
     @PutMapping("/student/{studentId}/mark-read")
     public ResponseEntity<String> markRemarksAsRead(
-            @PathVariable Long studentId
+            @PathVariable Long studentId,
+            @RequestParam(required = false) String role
     ) {
         try {
-            remarkService.markRemarksAsRead(studentId);
+            remarkService.markRemarksAsRead(studentId, role);
             return ResponseEntity.ok("All remarks marked as read");
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -126,12 +129,14 @@ public class AssessmentRemarkController {
     @GetMapping("/faculty/{facultyId}/assessment/{assessmentId}")
     public ResponseEntity<List<AssessmentRemarkEntity>> getFacultyRemarksForAssessment(
             @PathVariable Long facultyId,
-            @PathVariable Long assessmentId
+            @PathVariable Long assessmentId,
+            @RequestParam(required = false) String role
     ) {
         try {
             List<AssessmentRemarkEntity> remarks = remarkService.getRemarksByFacultyAndAssessment(
                     facultyId,
-                    assessmentId
+                    assessmentId,
+                    role
             );
             return ResponseEntity.ok(remarks);
         } catch (RuntimeException e) {

@@ -23,8 +23,9 @@ public class FacultyController {
     // ==========================
     @GetMapping("/{facultyId}/students")
     public List<UserResponse> getStudentsByFaculty(
-            @PathVariable Long facultyId) {
+            @PathVariable Long facultyId,
+            @RequestParam(required = false) String role) {
 
-        return userService.getStudentsByFaculty(facultyId);
+        return userService.getStudentsByFaculty(facultyId, role);
     }
 }
