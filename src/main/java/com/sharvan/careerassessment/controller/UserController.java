@@ -8,7 +8,11 @@ import com.sharvan.careerassessment.dto.FacultyResponse;
 import com.sharvan.careerassessment.dto.UserResponse;
 import com.sharvan.careerassessment.service.UserService;
 
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = {
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "https://frontenddeploy-git-main-sharvandeeps-projects.vercel.app"
+})
 @RestController
 @RequestMapping("/users")
 public class UserController {
