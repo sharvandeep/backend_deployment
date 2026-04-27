@@ -37,76 +37,102 @@ public class UserService {
     // ==========================================
 
     public UserResponse registerUser(String name,
-                                     String email,
-                                     String password,
-                                     String role,
-                                     String branchName) {
+                                 String email,
+                                 String password,
+                                 String role,
+                                 String branchName) {
 
-        BranchEntity branch = branchRepository
-                .findByName(branchName)
-                .orElseThrow(() -> new RuntimeException("Branch not found"));
+    System.out.println("===== REGISTER START =====");
+    System.out.println("Name: " + name);
+    System.out.println("Email: " + email);
+    System.out.println("Role: " + role);
+    System.out.println("Branch: " + branchName);
 
-        Role userRole;
+    BranchEntity branch = branchRepository
+            .findByName(branchName)
+            .orElseThrow(() -> {
+                System.out.println("❌ Branch NOT FOUND: " + branchName);
+                return new RuntimeException("Branch not found");
+            });
 
-        try {
-            userRole = Role.valueOf(role.toUpperCase());
-        } catch (Exception e) {
-            throw new RuntimeException("Invalid role");
-        }
+    System.out.println("✅ Branch found: " + branch.getName());
 
-        UserEntity user = new UserEntity();
-        user.setName(name);
-        user.setEmail(email);
-        user.setPassword(passwordEncoder.encode(password));
-        user.setRole(userRole);
-        user.setBranch(branch);
+    Role userRole;
 
-        // Generate userCode
-        long count = userRepository.countByRole(userRole);
-        String prefix = userRole == Role.FACULTY ? "F" : "S";
-        user.setUserCode(prefix + (count + 1));
-
-        // FACULTY
-        if (userRole == Role.FACULTY) {
-            UserEntity saved = userRepository.save(user);
-            return mapToUserResponse(saved);
-        }
-
-        // STUDENT
-        List<UserEntity> faculties =
-                userRepository.findByRoleAndBranch(Role.FACULTY, branch);
-
-        if (faculties.isEmpty()) {
-        	throw new ResponseStatusException(
-        	        HttpStatus.BAD_REQUEST,
-        	        "Currently no faculty available in this branch. Please contact admin."
-        	);
-        }
-
-        UserEntity assignedFaculty = null;
-
-        for (UserEntity faculty : faculties) {
-            long studentCount =
-                    userRepository.countByAssignedFaculty(faculty);
-
-            if (studentCount < 7) {
-                assignedFaculty = faculty;
-                break;
-            }
-        }
-
-        if (assignedFaculty == null) {
-            throw new RuntimeException(
-                    "All faculty in this branch have reached max student limit");
-        }
-
-        user.setAssignedFaculty(assignedFaculty);
-
-        UserEntity saved = userRepository.save(user);
-
-        return mapToUserResponse(saved);
-        
+    try {
+        userRole = Role.valueOf(role.toUpperCase());
+        System.out.println("✅ Role parsed: " + userRole);
+    } catch (Exception e) {
+        System.out.println("❌ Invalid role: " + role);
+        throw new RuntimeException("Invalid role");
     }
+
+    UserEntity user = new UserEntity();
+    user.setName(name);
+    user.setEmail(email);
+    user.setPassword(passwordEncoder.encode(password));
+    user.setRole(userRole);
+    user.setBranch(branch);
+
+    long count = userRepository.countByRole(userRole);
+    String prefix = userRole == Role.FACULTY ? "F" : "S";
+    user.setUserCode(prefix + (count + 1));
+
+    System.out.println("User code generated: " + user.getUserCode());
+
+    // FACULTY
+    if (userRole == Role.FACULTY) {
+        System.out.println("Saving FACULTY...");
+        UserEntity saved = userRepository.save(user);
+        System.out.println("✅ Faculty saved");
+        return mapToUserResponse(saved);
+    }
+
+    // STUDENT
+    List<UserEntity> faculties =
+            userRepository.findByRoleAndBranch(Role.FACULTY, branch);
+
+    System.out.println("Faculty found count: " + faculties.size());
+
+    if (faculties.isEmpty()) {
+        System.out.println("❌ No faculty found for branch");
+        throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST,
+                "Currently no faculty available in this branch. Please contact admin."
+        );
+    }
+
+    UserEntity assignedFaculty = null;
+
+    for (UserEntity faculty : faculties) {
+        long studentCount =
+                userRepository.countByAssignedFaculty(faculty);
+
+        System.out.println("Faculty: " + faculty.getEmail() + " -> students: " + studentCount);
+
+        if (studentCount < 7) {
+            assignedFaculty = faculty;
+            break;
+        }
+    }
+
+    if (assignedFaculty == null) {
+        System.out.println("❌ All faculty full");
+        throw new RuntimeException(
+                "All faculty in this branch have reached max student limit");
+    }
+
+    System.out.println("Assigned faculty: " + assignedFaculty.getEmail());
+
+    user.setAssignedFaculty(assignedFaculty);
+
+    UserEntity saved = userRepository.save(user);
+
+    System.out.println("✅ Student saved successfully");
+    System.out.println("===== REGISTER END =====");
+
+    return mapToUserResponse(saved);
+}
 
     // ==========================================
     // LOGIN USER
