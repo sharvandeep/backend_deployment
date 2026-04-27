@@ -76,7 +76,7 @@ public class UserService {
 
     long count = userRepository.countByRole(userRole);
     String prefix = userRole == Role.FACULTY ? "F" : "S";
-    user.setUserCode(prefix + (count + 1));
+    user.setUserCode(prefix + (count + 1) + System.currentTimeMillis());
 
     System.out.println("User code generated: " + user.getUserCode());
 
