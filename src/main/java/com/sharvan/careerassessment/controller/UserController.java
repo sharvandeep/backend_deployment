@@ -8,7 +8,7 @@ import com.sharvan.careerassessment.dto.FacultyResponse;
 import com.sharvan.careerassessment.dto.UserResponse;
 import com.sharvan.careerassessment.service.UserService;
 
-@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:5174"})
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/users")
 public class UserController {
