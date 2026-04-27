@@ -105,6 +105,7 @@ public class UserService {
         UserEntity saved = userRepository.save(user);
 
         return mapToUserResponse(saved);
+        
     }
 
     // ==========================================
@@ -244,4 +245,5 @@ public class UserService {
     private boolean isAdminRole(String role) {
         return role != null && role.equalsIgnoreCase("ADMIN");
     }
+    
 }
